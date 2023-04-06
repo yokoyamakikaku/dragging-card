@@ -1,12 +1,13 @@
 import { type FC } from 'react'
 import { HOUR_WIDTH } from './constants'
+import { useBoardContext } from './hooks'
 
 interface TimeScaleProps {
   height: number
-  hours: number[]
 }
 
-const TimeScale: FC<TimeScaleProps> = ({ hours, height }) => {
+const TimeScale: FC<TimeScaleProps> = ({ height }) => {
+  const { hours } = useBoardContext()
   return (
     <div className="absolute">
       {hours.map((hour, index) => {
