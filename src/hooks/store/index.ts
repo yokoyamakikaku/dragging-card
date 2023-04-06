@@ -1,20 +1,19 @@
 import { type Reducer, useReducer } from 'react'
 import { type StoreAction, type StoreState } from './types'
-import { getDefaultStore, getStoreFromLocalStorage } from './utilities'
+import { getDefaultStore } from './utilities'
 
 const initialState: StoreState = {
   cards: {},
-  groups: {}
+  parentGroups: {},
+  childGroups: {}
 }
 
 const reducer: Reducer<StoreState, StoreAction> = (state, action) => {
   switch (action.type) {
     case 'CARD/DELETE': {
       const { id } = action.payload
-
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete state.cards[id]
-
       return {
         ...state,
         cards: { ...state.cards }
@@ -28,32 +27,45 @@ const reducer: Reducer<StoreState, StoreAction> = (state, action) => {
         cards: { ...state.cards }
       }
     }
-    case 'GROUP/DELETE': {
+    case 'CHILD-GROUP/DELETE': {
       const { id } = action.payload
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete state.groups[id]
+      delete state.childGroups[id]
       return {
         ...state,
-        groups: { ...state.groups }
+        childGroups: { ...state.childGroups }
       }
     }
-    case 'GROUP/PUT': {
-      const { group } = action.payload
-      state.groups[group.id] = group
+    case 'CHILD-GROUP/PUT': {
+      const { childGroup } = action.payload
+      state.childGroups[childGroup.id] = childGroup
       return {
         ...state,
-        groups: { ...state.groups }
+        childGroups: { ...state.childGroups }
+      }
+    }
+    case 'PARENT-GROUP/DELETE': {
+      const { id } = action.payload
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete state.parentGroups[id]
+      return {
+        ...state,
+        parentGroups: { ...state.parentGroups }
+      }
+    }
+    case 'PARENT-GROUP/PUT': {
+      const { parentGroup } = action.payload
+      state.parentGroups[parentGroup.id] = parentGroup
+      return {
+        ...state,
+        parentGroups: { ...state.parentGroups }
       }
     }
   }
 }
 
 const initializer = () => {
-  try {
-    return getStoreFromLocalStorage()
-  } catch {
-    return getDefaultStore()
-  }
+  return getDefaultStore()
 }
 
 export function useStore () {

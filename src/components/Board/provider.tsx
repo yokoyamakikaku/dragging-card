@@ -1,20 +1,32 @@
 import { useState, type FC, type PropsWithChildren } from 'react'
-import { ListContext, defaultValue } from './hooks'
-import { type ListContextFunctions, type ListContextData } from './types'
+import { BoardContext, defaultBoardContextData, useHours } from './hooks'
+import { type BoardContextFunctions, type BoardContextData, type BoardContextValue } from './types'
 import { getDraggingState } from './utilities'
 import { type Card } from '@/types'
+import { CHILD_GROUP_ROW_HEAD, HOUR_WIDTH, PARENT_GROUP_ROW_HEAD } from './constants'
 
-interface ListProviderProps extends PropsWithChildren {
+interface BoardProviderProps extends PropsWithChildren {
+  defaultStart: number
+  defaultEnd: number
   onCardChange?: (card: Card) => void
 }
 
-export const ListProvider: FC<ListProviderProps> = ({
+export const BoardProvider: FC<BoardProviderProps> = ({
   children,
+  defaultStart = 0,
+  defaultEnd = 24,
   onCardChange
 }) => {
-  const [state, setState] = useState<ListContextData>(defaultValue)
+  const [state, setState] = useState<BoardContextData>(() => ({
+    ...defaultBoardContextData,
+    duration: [defaultStart, defaultEnd]
+  }))
 
-  const functions: ListContextFunctions = {
+  const hours = useHours(state.duration[0], state.duration[1])
+  const hoursWidth = hours.length * HOUR_WIDTH
+  const width = PARENT_GROUP_ROW_HEAD + CHILD_GROUP_ROW_HEAD + hoursWidth
+
+  const functions: BoardContextFunctions = {
     dragStart: (action) => {
       setState(state => ({ ...state, isDragging: true, dragging: getDraggingState(action) }))
 
@@ -47,14 +59,16 @@ export const ListProvider: FC<ListProviderProps> = ({
     }
   }
 
-  const contextValue = {
+  const contextValue: BoardContextValue = {
     ...state,
-    ...functions
+    ...functions,
+    hours,
+    width
   }
 
   return (
-    <ListContext.Provider value={contextValue}>
+    <BoardContext.Provider value={contextValue}>
       {children}
-    </ListContext.Provider>
+    </BoardContext.Provider>
   )
 }

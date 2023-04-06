@@ -1,29 +1,26 @@
-import { type CardRow } from '@/types'
 import { type MouseEvent, type FC } from 'react'
-import { HOUR_WIDTH, ROW_HEIGHT } from './constants'
-import ListCard from './ListCard'
-import { useIsDragging, useDragStart, useDragging, useUpdateDragging, useDragEnd } from './hooks'
+import { floorHourByQuarter } from '../../services/time'
 
-interface ListCardRowProps {
-  row: CardRow
-  hours: number[]
+import { HOUR_WIDTH, ROW_HEIGHT } from './constants'
+import { useBoardContext } from './hooks'
+import { type BoardRow as TBoardRow } from './types'
+import BoardCard from './BoardCard'
+
+interface BoardRowProps {
+  row: TBoardRow
 }
 
-const ListCardRow: FC<ListCardRowProps> = ({ hours, row }) => {
+const BoardRow: FC<BoardRowProps> = ({ row }) => {
+  const { hours, dragStart, dragEnd, isDragging, updateDragging, dragging } = useBoardContext()
   const width = hours.length * HOUR_WIDTH
   const height = ROW_HEIGHT
-  const dragStart = useDragStart()
-  const dragEnd = useDragEnd()
-
-  const isDragging = useIsDragging()
-  const dragging = useDragging()
-  const updateDragging = useUpdateDragging()
 
   return (
     <div className="border-b relative" style={{ width, height }}>
       {row.cards.map(card => (
-        <ListCard
-          key={card.id} card={card}
+        <BoardCard
+          key={card.id} card={card} moveable resizable
+          dragged={dragging?.original.card.id === card.id}
           onChangeStartHourStart={card => {
             dragStart({ type: 'CHANGE-START', payload: { card, rowId: row.id } })
           }}
@@ -35,7 +32,7 @@ const ListCardRow: FC<ListCardRowProps> = ({ hours, row }) => {
           }} />
       ))}
       {(dragging != null && dragging.current.rowId === row.id) && (
-        <ListCard card={dragging.current.card} dragged />
+        <BoardCard card={dragging.current.card} dragging moveable />
       )}
       {isDragging && (
         <div
@@ -47,16 +44,14 @@ const ListCardRow: FC<ListCardRowProps> = ({ hours, row }) => {
 
             const targetClient = target.getBoundingClientRect()
             const x = Math.max(0, Math.min(event.clientX - targetClient.x, targetClient.width))
+            const hour = floorHourByQuarter(x / HOUR_WIDTH)
             switch (dragging.type) {
               case 'MOVE': {
                 const rowId = row.id
                 const card = dragging.current.card
                 const duration = card.endHour - card.startHour
                 const halfDuration = duration / 2
-                const centerHour = x / HOUR_WIDTH
-                const flooredCenterQuatorHour = Math.round(centerHour * 4)
-                const roundedCenterHour = flooredCenterQuatorHour / 4
-                const startHour = Math.max(0, Math.min(roundedCenterHour - halfDuration, 24 - duration))
+                const startHour = Math.max(0, Math.min(hour - halfDuration, 24 - duration))
                 const endHour = startHour + duration
                 updateDragging({
                   ...dragging.current,
@@ -73,10 +68,7 @@ const ListCardRow: FC<ListCardRowProps> = ({ hours, row }) => {
               case 'CHANGE-START': {
                 const card = dragging.current.card
                 const endHour = card.endHour
-                const hour = x / HOUR_WIDTH
-                const flooredQuatorHour = Math.round(hour * 4)
-                const roundedHour = flooredQuatorHour / 4
-                const startHour = Math.max(0, Math.min(roundedHour, endHour - 0.25))
+                const startHour = Math.max(0, Math.min(hour, endHour - 0.25))
                 updateDragging({
                   ...dragging.current,
                   card: {
@@ -89,10 +81,7 @@ const ListCardRow: FC<ListCardRowProps> = ({ hours, row }) => {
               case 'CHANGE-END': {
                 const card = dragging.current.card
                 const startHour = card.startHour
-                const hour = x / HOUR_WIDTH
-                const flooredQuatorHour = Math.round(hour * 4)
-                const roundedHour = flooredQuatorHour / 4
-                const endHour = Math.max(startHour + 0.25, Math.min(roundedHour, 24))
+                const endHour = Math.max(startHour + 0.25, Math.min(hour, 24))
                 updateDragging({
                   ...dragging.current,
                   card: {
@@ -110,4 +99,4 @@ const ListCardRow: FC<ListCardRowProps> = ({ hours, row }) => {
   )
 }
 
-export default ListCardRow
+export default BoardRow

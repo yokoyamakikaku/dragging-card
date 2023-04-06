@@ -20,6 +20,7 @@ module.exports = {
   rules: {
     'react/react-in-jsx-scope': 0,
     '@typescript-eslint/explicit-function-return-type': 0,
-    '@typescript-eslint/no-floating-promises': 0
+    '@typescript-eslint/no-floating-promises': 0,
+    '@typescript-eslint/strict-boolean-expressions': 0
   }
 }

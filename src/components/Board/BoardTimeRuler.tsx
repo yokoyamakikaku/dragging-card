@@ -1,12 +1,10 @@
 import { type FC } from 'react'
 import { HOUR_WIDTH, ROW_HEAD_WIDTH, RULER_HEIGHT, Z_RULER } from './constants'
+import { useBoardContext } from './hooks'
 
-interface TimeRulerProps {
-  width: number
-  hours: number[]
-}
+const BoardTimeRuler: FC = () => {
+  const { width, hours } = useBoardContext()
 
-const TimeRuler: FC<TimeRulerProps> = ({ width, hours }) => {
   return (
     <div className="flex sticky top-0 bg-white" style={{ width, height: RULER_HEIGHT, zIndex: Z_RULER }}>
       <div className="border-r border-b" style={{ width: ROW_HEAD_WIDTH }} />
@@ -19,4 +17,4 @@ const TimeRuler: FC<TimeRulerProps> = ({ width, hours }) => {
   )
 }
 
-export default TimeRuler
+export default BoardTimeRuler

@@ -1,21 +1,23 @@
 import { type FC, useMemo } from 'react'
-import { useDragEnd, useDragStart, useDragging, useIsDragging, useUpdateDragging } from './hooks'
+import { useBoardContext } from './hooks'
 import { type Card } from '@/types'
-import { CARD_HEIGHT, RULER_HEIGHT } from './constants'
+import { RULER_HEIGHT } from './constants'
+import BoardCard from './BoardCard'
 
-interface DeckProps {
+interface BoardDeckProps {
   cards: Card[]
 }
 
-const Deck: FC<DeckProps> = ({
+const BoardDeck: FC<BoardDeckProps> = ({
   cards
 }) => {
-  const isDragging = useIsDragging()
-
-  const dragStart = useDragStart()
-  const dragEnd = useDragEnd()
-  const dragging = useDragging()
-  const update = useUpdateDragging()
+  const {
+    isDragging,
+    dragStart,
+    dragEnd,
+    dragging,
+    updateDragging: update
+  } = useBoardContext()
 
   const finalCards = useMemo(() => {
     const finalCards = [...cards]
@@ -23,7 +25,7 @@ const Deck: FC<DeckProps> = ({
     if (
       dragging?.type === 'MOVE' &&
       dragging.current.card.groupId === null &&
-      !finalCards.includes(dragging.current.card)
+      !finalCards.some(card => card.id === dragging.current.card.id)
     ) {
       finalCards.push(dragging.current.card)
     }
@@ -36,13 +38,10 @@ const Deck: FC<DeckProps> = ({
       <div className="border-b" style={{ height: RULER_HEIGHT }} />
       <div className="p-4 flex flex-col gap-3 flex-grow overflow-auto">
         {finalCards.map(card => (
-          <div
-            key={card.id} onMouseDown={() => { dragStart({ type: 'MOVE', payload: { card, rowId: null } }) }}
-            style={{ height: CARD_HEIGHT }}
-            className='bg-blue-500 text-white text-xs p-1 rounded shrink-0 cursor-move relative select-none'>
-              <span className='mr-1'>{card.label}</span>
-              <span className='text-blue-200'>({card.startHour} - {card.endHour})</span>
-          </div>
+          <BoardCard
+            key={card.id} card={card}
+            moveable stacked
+            onMoveStart={() => { dragStart({ type: 'MOVE', payload: { card, rowId: null } }) }}/>
         ))}
       </div>
       {isDragging && (
@@ -65,4 +64,4 @@ const Deck: FC<DeckProps> = ({
   )
 }
 
-export default Deck
+export default BoardDeck
