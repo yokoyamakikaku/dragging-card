@@ -8,7 +8,7 @@ function getGroupedCardCount () {
     const searchParams = new URL(window.location.toString()).searchParams
     const c = searchParams.get('c')
     const count = Math.floor(Number(c))
-    if (count < 0) throw Error()
+    if (count < 1) throw Error()
     return count
   } catch {
     return DEFAULT_GROUPED_CARD_COUNT
